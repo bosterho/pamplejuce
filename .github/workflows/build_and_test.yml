@@ -179,7 +179,7 @@ jobs:
           SetFile -a C "${{ env.AU_PATH }}"
           SetFile -a C "${{ env.CLAP_PATH }}"
 
-      # - name: pkgbuild, Productbuild and Notarize
+      - name: pkgbuild, Productbuild and Notarize
         if: ${{ matrix.name == 'macOS' }}
         timeout-minutes: 5
         run: |
