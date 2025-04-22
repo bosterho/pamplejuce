@@ -35,7 +35,7 @@ set(BUNDLE_ID "com.additivemidi.additivemidi")
 
 # Change me! Set the plugin formats you want built
 # Valid choices: AAX Unity VST VST3 AU AUv3 Standalone
-set(FORMATS Standalone VST3)
+set(FORMATS Standalone VST3 AU)
 
 # For simplicity, the name of the CMake project is also the name of the target
 project(${PROJECT_NAME} VERSION ${CURRENT_VERSION})
