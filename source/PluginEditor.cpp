@@ -16,7 +16,6 @@ PluginEditor::PluginEditor (PluginProcessor& p)
         }
 
         inspector->setVisible (true);
-        DBG ("heyo");
     };
 
     // Make sure that before the constructor has finished, you've set the
