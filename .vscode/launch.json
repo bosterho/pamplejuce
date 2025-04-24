@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "AudioPluginHost",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "I:/JUCE/pamplejucesimple/JUCE/extras/AudioPluginHost/Builds/VisualStudio2022/x64/Debug/App/AudioPluginHost.exe",
+            "args": ["${workspaceFolder}/build/Pamplejucesimple_artefacts/Debug/VST3/Additive Midi.vst3"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false
+        }
+    ]
+}

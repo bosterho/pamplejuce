@@ -61,23 +61,34 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="5" x="0.49875" y="0.625" useARA="0" uiLastX_Normal="1376"
-          uiLastY_Normal="1069" uiopen_Normal="1">
+  <FILTER uid="5" x="0.3425" y="0.3830645161290323" useARA="0" uiLastX_Normal="1640"
+          uiLastY_Normal="792" uiopen_Normal="0">
     <PLUGIN name="Additive Midi" format="VST3" category="Fx" manufacturer="Ostertoaster Tools"
             version="0.0.1" file="I:\JUCE\pamplejucesimple\build\Pamplejucesimple_artefacts\Debug\VST3\Additive Midi.vst3\Contents\x86_64-win\Additive Midi.vst3"
-            uniqueId="3d995ef6" isInstrument="0" fileTime="196648be26b" infoUpdateTime="196648c148d"
-            numInputs="2" numOutputs="2" isShell="0" hasARAExtension="0"
+            uniqueId="3d995ef6" isInstrument="0" fileTime="19665679995" infoUpdateTime="19665695ea4"
+            numInputs="0" numOutputs="0" isShell="0" hasARAExtension="0"
             uid="7aa5c801"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
-      <INPUTS>
-        <BUS index="0" layout="L R"/>
-      </INPUTS>
+      <INPUTS/>
+      <OUTPUTS/>
+    </LAYOUT>
+  </FILTER>
+  <FILTER uid="6" x="0.4" y="0.6209677419354839" useARA="0">
+    <PLUGIN name="Sine Wave Synth" format="Internal" category="Synth" manufacturer="JUCE"
+            version="1.0.0" file="Sine Wave Synth" uniqueId="16fd76a8" isInstrument="1"
+            fileTime="0" infoUpdateTime="0" numInputs="0" numOutputs="2"
+            isShell="0" hasARAExtension="0" uid="16fd76a8"/>
+    <STATE>0.</STATE>
+    <LAYOUT>
+      <INPUTS/>
       <OUTPUTS>
         <BUS index="0" layout="L R"/>
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <CONNECTION srcFilter="5" srcChannel="0" dstFilter="3" dstChannel="0"/>
-  <CONNECTION srcFilter="5" srcChannel="1" dstFilter="3" dstChannel="1"/>
+  <CONNECTION srcFilter="2" srcChannel="4096" dstFilter="5" dstChannel="4096"/>
+  <CONNECTION srcFilter="5" srcChannel="4096" dstFilter="6" dstChannel="4096"/>
+  <CONNECTION srcFilter="6" srcChannel="0" dstFilter="3" dstChannel="0"/>
+  <CONNECTION srcFilter="6" srcChannel="1" dstFilter="3" dstChannel="1"/>
 </FILTERGRAPH>

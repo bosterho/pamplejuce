@@ -150,6 +150,35 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         // ..do something to the data...
     }
 
+    // Midi
+    for (const auto metadata : midiMessages)
+    {
+        const auto message = metadata.getMessage();
+        const auto time = metadata.samplePosition;
+        int noteNumber = juce::jlimit (0, 127, message.getNoteNumber() + 12);
+        int velocity = message.getVelocity();
+
+        if (message.isNoteOn())
+        {
+            // Handle note on
+            DBG ("Note On: " << message.getNoteNumber() << " Velocity: " << message.getVelocity());
+            midiMessages.addEvent (juce::MidiMessage::noteOn (1, noteNumber, (juce::uint8) velocity), time);
+        }
+        else if (message.isNoteOff())
+        {
+            // Handle note off
+            DBG ("Note Off: " << message.getNoteNumber());
+            midiMessages.addEvent (juce::MidiMessage::noteOff (1, noteNumber, (juce::uint8) velocity), time);
+        }
+        else if (message.isController())
+        {
+            // Handle controller
+            DBG ("Controller: " << message.getControllerNumber() << " Value: " << message.getControllerValue());
+        }
+        
+
+    }
+
 }
 
 //==============================================================================

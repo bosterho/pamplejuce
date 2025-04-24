@@ -64,10 +64,14 @@ juce_add_plugin("${PROJECT_NAME}"
     COMPANY_NAME "${COMPANY_NAME}"
     BUNDLE_ID "${BUNDLE_ID}"
 
+    NEEDS_MIDI_INPUT TRUE
+    NEEDS_MIDI_OUTPUT TRUE
+    IS_MIDI_EFFECT TRUE
+
     # On MacOS, plugin is copied to /Users/yourname/Library/Audio/Plug-Ins/
     # You need to do this in order for the artifacts to be made by Github Actions. 
     # However, if you try to build locally, the permissions aren't working, for it to copy the plugin into program files
-    COPY_PLUGIN_AFTER_BUILD TRUE
+    COPY_PLUGIN_AFTER_BUILD FALSE
 
     # Change me!
     # A four-character plugin id
