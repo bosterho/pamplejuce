@@ -4,8 +4,13 @@ PluginEditor::PluginEditor (PluginProcessor& p)
     : AudioProcessorEditor (&p), processorRef (p)
 {
     juce::ignoreUnused (processorRef);
-
+    
     addAndMakeVisible (inspectButton);
+
+    // addAndMakeVisible (harm);
+
+    // Set the size of the Harm component to fill the editor
+    // harm.setBounds (getLocalBounds().reduced (10)); // Adjust the margins as needed
 
     // this chunk of code instantiates and opens the melatonin inspector
     inspectButton.onClick = [&] {
@@ -36,13 +41,17 @@ void PluginEditor::paint (juce::Graphics& g)
     g.setColour (juce::Colours::white);
     g.setFont (16.0f);
     auto helloWorld = juce::String ("Hello from ") + PRODUCT_NAME_WITHOUT_VERSION + " v" VERSION + " running in " + CMAKE_BUILD_TYPE;
+
     g.drawText (helloWorld, area.removeFromTop (150), juce::Justification::centred, false);
+
+    // Overtones table
+
 }
 
 void PluginEditor::resized()
 {
     // layout the positions of your child components here
     auto area = getLocalBounds();
-    area.removeFromBottom(50);
-    inspectButton.setBounds (getLocalBounds().withSizeKeepingCentre(100, 50));
+    area.removeFromBottom (50);
+    inspectButton.setBounds (getLocalBounds().withSizeKeepingCentre (100, 50));
 }

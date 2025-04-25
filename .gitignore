@@ -18,6 +18,7 @@ Builds/*
 build
 
 .vs
+.vscode
 
 # This should never exist
 Install/*
