@@ -233,7 +233,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
-        "Morph",    // parameter ID
+        juce::ParameterID("Morph", 1),    // parameter ID with version hint of 1
         "Morph",    // parameter name
         0.0f,       // minimum value
         1.0f,       // maximum value
