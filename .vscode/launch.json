@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "AudioPluginHost",
+            "name": "Reaper",
             "type": "cppvsdbg",
             "request": "launch",
             // "program": "I:/JUCE/pamplejucesimple/JUCE/extras/AudioPluginHost/Builds/VisualStudio2022/x64/Debug/App/AudioPluginHost.exe",
