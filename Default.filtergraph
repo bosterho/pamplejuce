@@ -61,19 +61,6 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="5" x="0.3425" y="0.3830645161290323" useARA="0" uiLastX_Normal="1640"
-          uiLastY_Normal="792" uiopen_Normal="0">
-    <PLUGIN name="Additive Midi" format="VST3" category="Fx" manufacturer="Ostertoaster Tools"
-            version="0.0.1" file="I:\JUCE\pamplejucesimple\build\Pamplejucesimple_artefacts\Debug\VST3\Additive Midi.vst3\Contents\x86_64-win\Additive Midi.vst3"
-            uniqueId="3d995ef6" isInstrument="0" fileTime="19665679995" infoUpdateTime="19665695ea4"
-            numInputs="0" numOutputs="0" isShell="0" hasARAExtension="0"
-            uid="7aa5c801"/>
-    <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
-    <LAYOUT>
-      <INPUTS/>
-      <OUTPUTS/>
-    </LAYOUT>
-  </FILTER>
   <FILTER uid="6" x="0.4" y="0.6209677419354839" useARA="0">
     <PLUGIN name="Sine Wave Synth" format="Internal" category="Synth" manufacturer="JUCE"
             version="1.0.0" file="Sine Wave Synth" uniqueId="16fd76a8" isInstrument="1"
@@ -87,8 +74,21 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <CONNECTION srcFilter="2" srcChannel="4096" dstFilter="5" dstChannel="4096"/>
-  <CONNECTION srcFilter="5" srcChannel="4096" dstFilter="6" dstChannel="4096"/>
+  <FILTER uid="7" x="0.2825" y="0.3347193347193347" useARA="0" uiLastX_Normal="1538"
+          uiLastY_Normal="534" uiopen_Normal="0">
+    <PLUGIN name="MidiEcho" format="VST3" category="Fx" manufacturer="Cmajor Software Ltd"
+            version="1.0" file="I:\JUCE\MidiEcho\build\MidiEcho_artefacts\Debug\VST3\MidiEcho.vst3\Contents\x86_64-win\MidiEcho.vst3"
+            uniqueId="e91352c7" isInstrument="0" fileTime="19675c147e3" infoUpdateTime="19675c3bb04"
+            numInputs="0" numOutputs="0" isShell="0" hasARAExtension="0"
+            uid="3e9c0a4b"/>
+    <STATE>266.VMjLgDP....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9DSL03xPvXEVvgCah4BQl4RLqYUVxLVUZoVTGokKDAUPAAUYt3hKlM1aUEyXHUkUZ01YFMlKDAUPA4RVt3hKP4RPtTETRUDUSMUPt3hKt3hKt3hKt3hKt3hRUACTEEzZh8VVWgkdUYTTmE0UX4BQP4hPqcjXm0jLh4BQP4xPt.0Qt3hKt3hKt3hKtQUUCUEQTg2ZrM1YQcUVDUjQicVP77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
+    <LAYOUT>
+      <INPUTS/>
+      <OUTPUTS/>
+    </LAYOUT>
+  </FILTER>
+  <CONNECTION srcFilter="2" srcChannel="4096" dstFilter="7" dstChannel="4096"/>
   <CONNECTION srcFilter="6" srcChannel="0" dstFilter="3" dstChannel="0"/>
   <CONNECTION srcFilter="6" srcChannel="1" dstFilter="3" dstChannel="1"/>
+  <CONNECTION srcFilter="7" srcChannel="4096" dstFilter="6" dstChannel="4096"/>
 </FILTERGRAPH>

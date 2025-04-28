@@ -1,118 +1,97 @@
 #include "Harm.h"
 
-//==============================================================================
-Harm::Harm()
-{
-    // Initialize your table
-    addAndMakeVisible(tableListBox);
-    
-    // Set this instance as the model for the table
-    tableListBox.setModel(this);
-    
-    // Configure the columns
-    setupColumns();
-}
-
-Harm::~Harm()
-{
-    // Cleanup if needed
-}
-
 void Harm::paint(juce::Graphics& g)
 {
-    // Paint any custom background if needed
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+    drawRows(g);
 }
 
-void Harm::resized()
+void Harm::drawRows(juce::Graphics& g)
 {
-    // Size the table to fill the entire component
-    tableListBox.setBounds(getLocalBounds());
-}
-
-int Harm::getNumRows()
-{
-    // Return the number of rows in your data model
-    return 0; // Replace with actual row count
-}
-
-void Harm::paintRowBackground(juce::Graphics& g, int rowNumber, int width, int height, bool rowIsSelected)
-{
-    // Paint the background of each row
-    if (rowIsSelected)
-        g.fillAll(juce::Colours::lightblue);
-    else if (rowNumber % 2)
-        g.fillAll(juce::Colours::white);
-    else
-        g.fillAll(juce::Colour(0xffeeeeee));
-}
-
-void Harm::paintCell(juce::Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
-{
-    // Paint the contents of a cell
-    g.setColour(rowIsSelected ? juce::Colours::darkblue : juce::Colours::black);
-    g.setFont(14.0f);
+    const float availableWidth = static_cast<float>(getWidth());
+    const float barWidth = (availableWidth / harmData.size()) - config.barSpacing;
+    const int contentHeight = getHeight();
     
-    // Here you would draw the actual cell content based on your data model
-    g.drawText("Cell (" + juce::String(rowNumber) + "," + juce::String(columnId) + ")", 
-               2, 0, width - 4, height, juce::Justification::centredLeft, true);
-}
-
-juce::Component* Harm::refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, 
-                                                juce::Component* existingComponentToUpdate)
-{
-    // Return a component to display in the cell, or nullptr for a regular cell
-    return nullptr;
-}
-
-void Harm::sortOrderChanged(int newSortColumnId, bool isForwards)
-{
-    // Handle sorting when a column header is clicked
-    // Sort your data model here
+    g.setColour(barColour);
     
-    // Then update the display
-    tableListBox.updateContent();
+    for (int i = 0; i < harmData.size(); ++i)
+    {
+        const float value = harmData[i];
+        const float xPos = i * (barWidth + config.barSpacing);
+        const int barHeight = juce::roundToInt(value * contentHeight);
+        const int yPos = contentHeight - barHeight;
+        
+        g.fillRect(xPos, static_cast<float>(yPos), barWidth, static_cast<float>(barHeight));
+    }
 }
 
 void Harm::updateContent()
 {
-    // Call this when your data changes
-    tableListBox.updateContent();
     repaint();
 }
 
-void Harm::addRow(/* your parameters here */)
+void Harm::addRow(float value)
 {
-    // Add a row to your data model
-    // For example: tableData.add(newItem);
-    
-    // Then update the display
-    updateContent();
+    harmData.add(value);
+    repaint();
 }
 
 void Harm::clear()
 {
-    // Clear your data model
-    // For example: tableData.clear();
-    
-    // Then update the display
-    updateContent();
+    harmData.clear();
+    repaint();
 }
 
-void Harm::setupColumns()
+void Harm::resized()
 {
-    // Configure your table columns
-    auto& header = tableListBox.getHeader();
+    repaint();
+}
+
+int Harm::getBarAtPosition(float x)
+{
+    const float barWidth = (static_cast<float>(getWidth()) / harmData.size()) - config.barSpacing;
     
-    // Clear any existing columns
-    header.removeAllColumns();
-    
-    // Add columns with IDs, names, and widths
-    // Column IDs should start from 1 (0 is reserved)
-    header.addColumn("Column 1", 1, 100);
-    header.addColumn("Column 2", 2, 100);
-    header.addColumn("Column 3", 3, 100);
-    
-    // Additional column settings
-    header.setStretchToFitActive(true);
+    for (int i = 0; i < harmData.size(); ++i)
+    {
+        float barX = i * (barWidth + config.barSpacing);
+        if (x >= barX && x < barX + barWidth)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+float Harm::valueFromY(float y) const
+{
+    float value = 1.0f - (y / getHeight());
+    return juce::jlimit(0.0f, 1.0f, value);
+}
+
+void Harm::mouseDown(const juce::MouseEvent& e)
+{
+    if (getBarAtPosition(e.position.x) != -1)
+    {
+        isDragging = true;
+    }
+}
+
+void Harm::mouseDrag(const juce::MouseEvent& e)
+{
+    if (isDragging)
+    {
+        int barIndex = getBarAtPosition(e.position.x);
+        if (barIndex != -1)
+        {
+            float newValue = valueFromY(e.position.y);
+            harmData.set(barIndex, newValue);
+            DBG("Bar " << barIndex << " value: " << newValue);
+            repaint();
+        }
+    }
+}
+
+void Harm::mouseUp(const juce::MouseEvent& e)
+{
+    isDragging = false;
 }

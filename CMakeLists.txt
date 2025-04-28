@@ -71,7 +71,7 @@ juce_add_plugin("${PROJECT_NAME}"
     # On MacOS, plugin is copied to /Users/yourname/Library/Audio/Plug-Ins/
     # You need to do this in order for the artifacts to be made by Github Actions. 
     # However, if you try to build locally, the permissions aren't working, for it to copy the plugin into program files
-    COPY_PLUGIN_AFTER_BUILD FALSE
+    COPY_PLUGIN_AFTER_BUILD TRUE
 
     # Change me!
     # A four-character plugin id
@@ -100,7 +100,6 @@ clap_juce_extensions_plugin(TARGET "${PROJECT_NAME}"
 
 # Enable fast math, C++20 and a few other target defaults
 include(SharedCodeDefaults)
-
 
 # Manually list all .h and .cpp files for the plugin
 # If you are like me, you'll use globs for your sanity.
@@ -158,7 +157,7 @@ target_link_libraries(SharedCode
 target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)
 
 # IPP support, comment out to disable
-include(PamplejuceIPP)
+# include(PamplejuceIPP)
 
 # Everything related to the tests target
 include(Tests)

@@ -1,49 +1,96 @@
 #pragma once
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_processors/juce_audio_processors.h>
 
-//==============================================================================
-/**
-    A custom table component for displaying tabular data.
-*/
-class Harm  : public juce::Component,
-                 public juce::TableListBoxModel
+class Harm : public juce::Component
 {
 public:
+    static constexpr int numValues = 8;
     //==============================================================================
-    Harm();
-    ~Harm() override;
+
+    Harm(juce::Colour barColor = juce::Colours::blue) : barColour(barColor)
+    {
+        initializeData();
+        setOpaque(true);
+    }
+    ~Harm() override {}
 
     //==============================================================================
-    // Component overrides
+
     void paint(juce::Graphics& g) override;
     void resized() override;
 
     //==============================================================================
-    // TableListBoxModel overrides
-    int getNumRows() override;
-    void paintRowBackground(juce::Graphics& g, int rowNumber, int width, int height, bool rowIsSelected) override;
-    void paintCell(juce::Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;
-    
-    // Optional TableListBoxModel methods you might want to override
-    juce::Component* refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, 
-                                            juce::Component* existingComponentToUpdate) override;
-    void sortOrderChanged(int newSortColumnId, bool isForwards) override;
-    
-    //==============================================================================
+
     void updateContent();
-    void addRow(/* your parameters here */);
+    void addRow(float value);
     void clear();
 
+    // Add getter/setter methods
+    float getValue(int index) const 
+    { 
+        return harmData[index]; 
+    }
+    
+    void setValue(int index, float value)
+    {
+        if (index >= 0 && index < numValues)
+        {
+            harmData.set(index, juce::jlimit(0.0f, 1.0f, value));
+            repaint();
+        }
+    }
+
+    // Add serialization method
+    juce::Array<float> getHarmonicData() const
+    {
+        return harmData;
+    }
+
+    void setHarmonicData(const juce::Array<float>& data)
+    {
+        harmData.clear();
+        harmData = data;
+        repaint();
+    }
+
 private:
+    float values[numValues] = { 0.0f };  // Initialize array with zeros
+
     //==============================================================================
-    juce::TableListBox tableListBox;
-    
+
+    struct TableConfig
+    {
+        int rowHeight = 25;
+        int barSpacing = 2;
+        juce::Colour rowColour { juce::Colours::lightgrey };
+        juce::Colour alternateRowColour { juce::Colours::white };
+    } config;
+
     // Your data model
-    // For example:
-    // juce::Array<MyDataType> tableData;
+    juce::Array<float> harmData;
+
+    void initializeData()
+    {
+        // Initialize both arrays
+        for (int i = 0; i < numValues; ++i)
+        {
+            harmData.add(i * 0.1f);
+            values[i] = i * 0.1f;
+        }
+    }
+
+    void drawRows(juce::Graphics& g);
+    bool isDragging = false;
+    float valueFromY(float y) const;
+    int getBarAtPosition(float x);    // Add this line
     
-    // Column configuration
-    void setupColumns();
-    
+    // Override mouse events
+    void mouseDown(const juce::MouseEvent& e) override;
+    void mouseDrag(const juce::MouseEvent& e) override;
+    void mouseUp(const juce::MouseEvent& e) override;
+
+    juce::Colour barColour;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Harm)
 };

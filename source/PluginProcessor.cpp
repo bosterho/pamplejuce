@@ -119,66 +119,86 @@ bool PluginProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
   #endif
 }
 
-void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
-                                              juce::MidiBuffer& midiMessages)
+void PluginProcessor::processBlock(juce::AudioBuffer<float>& buffer,
+                                 juce::MidiBuffer& midiMessages)
 {
-    juce::ignoreUnused (midiMessages);
+    // Helper function to convert frequency ratio to semitones
+    auto ratioToSemitones = [](float ratio) {
+        return static_cast<int>(std::round(12.0f * std::log2(ratio)));
+    };
 
-    juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
-
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
-
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-        juce::ignoreUnused (channelData);
-        // ..do something to the data...
-    }
-
-    // Midi
+    juce::MidiBuffer processedMidi;
+    
     for (const auto metadata : midiMessages)
     {
         const auto message = metadata.getMessage();
         const auto time = metadata.samplePosition;
-        int noteNumber = juce::jlimit (0, 127, message.getNoteNumber() + 12);
-        int velocity = message.getVelocity();
 
         if (message.isNoteOn())
         {
-            // Handle note on
-            DBG ("Note On: " << message.getNoteNumber() << " Velocity: " << message.getVelocity());
-            midiMessages.addEvent (juce::MidiMessage::noteOn (1, noteNumber, (juce::uint8) velocity), time);
+            const int baseNote = message.getNoteNumber();
+            const int baseVelocity = message.getVelocity();
+            
+            processedMidi.addEvent(message, time);
+            
+            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
+            {
+                auto harmonicData = editor->getComboHarmonicData();
+                
+                for (int i = 0; i < harmonicData.size(); ++i)
+                {
+                    float harmonicStrength = harmonicData[i];
+                    if (harmonicStrength > 0.0f)
+                    {
+                        // Calculate the frequency ratio for this harmonic
+                        // Harmonic series is 1:2:3:4:5:6:7:8
+                        float ratio = static_cast<float>(i + 2); // +2 because i starts at 0
+                        int harmonicNote = baseNote + ratioToSemitones(ratio);
+                        
+                        int harmonicVelocity = juce::jlimit(1, 127, 
+                            static_cast<int>(baseVelocity * harmonicStrength));
+                        
+                        if (harmonicNote <= 127)
+                        {
+                            processedMidi.addEvent(
+                                juce::MidiMessage::noteOn(message.getChannel(), 
+                                                        harmonicNote, 
+                                                        static_cast<uint8_t>(harmonicVelocity)),
+                                time);
+                        }
+                    }
+                }
+            }
         }
         else if (message.isNoteOff())
         {
-            // Handle note off
-            DBG ("Note Off: " << message.getNoteNumber());
-            midiMessages.addEvent (juce::MidiMessage::noteOff (1, noteNumber, (juce::uint8) velocity), time);
+            const int baseNote = message.getNoteNumber();
+            processedMidi.addEvent(message, time);
+            
+            // Send note-offs using the same ratio calculation
+            for (int i = 0; i < 8; ++i)
+            {
+                float ratio = static_cast<float>(i + 2);
+                int harmonicNote = baseNote + ratioToSemitones(ratio);
+                if (harmonicNote <= 127)
+                {
+                    processedMidi.addEvent(
+                        juce::MidiMessage::noteOff(message.getChannel(), harmonicNote),
+                        time);
+                }
+            }
         }
-        else if (message.isController())
+        else
         {
-            // Handle controller
-            DBG ("Controller: " << message.getControllerNumber() << " Value: " << message.getControllerValue());
+            processedMidi.addEvent(message, time);
         }
-        
-
     }
+    
+    midiMessages.swapWith(processedMidi);
 
+    // Clear audio outputs
+    for (auto i = getTotalNumInputChannels(); i < getTotalNumOutputChannels(); ++i)
+        buffer.clear(i, 0, buffer.getNumSamples());
 }
 
 //==============================================================================
@@ -195,17 +215,32 @@ juce::AudioProcessorEditor* PluginProcessor::createEditor()
 //==============================================================================
 void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
-    juce::ignoreUnused (destData);
+    auto state = apvts.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);
 }
 
 void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
-    juce::ignoreUnused (data, sizeInBytes);
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName(apvts.state.getType()))
+            apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParameterLayout()
+{
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "Morph",    // parameter ID
+        "Morph",    // parameter name
+        0.0f,       // minimum value
+        1.0f,       // maximum value
+        0.5f        // default value
+    ));
+    
+    return layout;
 }
 
 //==============================================================================
