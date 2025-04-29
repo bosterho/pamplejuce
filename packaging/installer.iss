@@ -39,6 +39,10 @@ Source: "..\Builds\{#ProjectName}_artefacts\Release\VST3\{#ProductName}.vst3\*";
 Source: "..\Builds\{#ProjectName}_artefacts\Release\CLAP\{#ProductName}.clap"; DestDir: "{commoncf64}\CLAP\"; Flags: ignoreversion; Components: clap
 Source: "..\Builds\{#ProjectName}_artefacts\Release\Standalone\{#ProductName}.exe"; DestDir: "{commonpf64}\{#Publisher}\{#ProductName}"; Flags: ignoreversion; Components: standalone
 
+; Factory presets
+Source: "..\resources\Factory presets\*"; DestDir: "{commonappdata}\{#ProductName}\Factory Presets"; \
+    Flags: ignoreversion recursesubdirs; Components: vst3
+
 [Icons]
 Name: "{autoprograms}\{#ProductName}"; Filename: "{commonpf64}\{#Publisher}\{#ProductName}\{#ProductName}.exe"; Components: standalone
 Name: "{autoprograms}\Uninstall {#ProductName}"; Filename: "{uninstallexe}"
