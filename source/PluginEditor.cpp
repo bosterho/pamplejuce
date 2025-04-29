@@ -51,6 +51,16 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     
     addAndMakeVisible(loadPresetButton);
     loadPresetButton.onClick = [this]() { loadPreset(); };
+
+    // Setup preset browser
+    currentPresetDirectory = juce::File("C:/ProgramData/Additive Midi/Factory presets");
+    updatePresetList();
+    
+    addAndMakeVisible(nextPresetButton);
+    addAndMakeVisible(prevPresetButton);
+    
+    nextPresetButton.onClick = [this]() { loadNextPreset(); };
+    prevPresetButton.onClick = [this]() { loadPrevPreset(); };
 }
 
 PluginEditor::~PluginEditor()
@@ -85,13 +95,18 @@ void PluginEditor::resized()
     auto buttonArea = area.removeFromBottom(50);
     inspectButton.setBounds(buttonArea.withSizeKeepingCentre(100, 50));
     
-    auto buttonWidth = 100;
+    auto buttonWidth = 60;
     auto buttonSpacing = 10;
-    auto buttonsX = (getWidth() - (2 * buttonWidth + buttonSpacing)) / 2;
+    auto buttonsY = buttonArea.getY() + 10;
     
-    savePresetButton.setBounds(buttonsX, buttonArea.getY() + 10, buttonWidth, 30);
-    loadPresetButton.setBounds(buttonsX + buttonWidth + buttonSpacing, 
-                             buttonArea.getY() + 10, buttonWidth, 30);
+    // Position the preset browser buttons
+    prevPresetButton.setBounds(10, buttonsY, buttonWidth, 30);
+    nextPresetButton.setBounds(buttonWidth + buttonSpacing + 10, buttonsY, buttonWidth, 30);
+    
+    // Adjust existing save/load buttons position
+    auto centerButtonsX = (getWidth() - (2 * 100 + buttonSpacing)) / 2;
+    savePresetButton.setBounds(centerButtonsX, buttonsY, 100, 30);
+    loadPresetButton.setBounds(centerButtonsX + 100 + buttonSpacing, buttonsY, 100, 30);
     
     // Divide remaining space horizontally for harm1, combo, and harm2
     auto thirdWidth = area.getWidth() / 3;
@@ -102,31 +117,85 @@ void PluginEditor::resized()
 
 void PluginEditor::savePreset()
 {
-    fileChooser = std::make_unique<juce::FileChooser>(
+    dialogWindow = std::make_unique<juce::AlertWindow>(
         "Save Preset",
-        juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
-        "*.preset");
+        "help text",
+        juce::MessageBoxIconType::NoIcon);  // Changed from QuestionIcon to NoIcon
 
-    auto chooserFlags = juce::FileBrowserComponent::saveMode 
-                     | juce::FileBrowserComponent::canSelectFiles 
-                     | juce::FileBrowserComponent::warnAboutOverwriting;
+    // First add the text editor and buttons
+    dialogWindow->addTextEditor("presetName", "New Preset");
+    dialogWindow->addButton("OK", 1, juce::KeyPress(juce::KeyPress::returnKey, 0, 0));
+    dialogWindow->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey, 0, 0));
 
-    fileChooser->launchAsync(chooserFlags, [this](const juce::FileChooser& fc)
+    // Now style everything after components are created
+    dialogWindow->setColour(juce::AlertWindow::backgroundColourId, juce::Colour(0xFF191919));
+    dialogWindow->setColour(juce::AlertWindow::textColourId, juce::Colours::white);
+    dialogWindow->setColour(juce::AlertWindow::outlineColourId, juce::Colours::grey);
+    
+    // Style text editor after it exists
+    if (auto* editor = dialogWindow->getTextEditor("presetName"))
     {
-        if (fc.getURLResult().isLocalFile())
+        editor->setColour(juce::TextEditor::backgroundColourId, juce::Colours::black);
+        editor->setColour(juce::TextEditor::textColourId, juce::Colours::white);
+        editor->setColour(juce::TextEditor::outlineColourId, juce::Colours::grey);
+        editor->setFont(juce::Font(16.0f));
+    }
+    
+
+    // Add this code to style the buttons properly
+    for (auto* child : dialogWindow->getChildren())
+    {
+        if (auto* button = dynamic_cast<juce::TextButton*>(child))
         {
-            auto file = fc.getResult();
-            
-            PresetData data;
-            data.harm1Data = harm1.getHarmonicData();
-            data.harm2Data = harm2.getHarmonicData();
-            data.comboData = combo.getHarmonicData();
-            data.morphValue = static_cast<float>(morphSlider.getValue());
-            
-            data.saveToFile(file);
+            button->setColour(juce::TextButton::buttonColourId, juce::Colours::black);
+            button->setColour(juce::TextButton::textColourOffId, juce::Colours::white);
+            button->setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xFF303030));
+            button->setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xFF303030));
         }
-        fileChooser.reset();
-    });
+    }
+
+    // Center dialog relative to plugin window
+    auto pluginBounds = getBounds();
+    auto dialogBounds = dialogWindow->getBounds();
+    auto screenPos = getScreenPosition();
+    
+    // Center horizontally and position slightly above vertical center
+    int x = screenPos.getX() + (pluginBounds.getWidth() - dialogBounds.getWidth()) / 2;
+    int y = screenPos.getY() + (pluginBounds.getHeight() - dialogBounds.getHeight()) / 3;
+    
+    dialogWindow->setBounds(x, y, dialogBounds.getWidth(), dialogBounds.getHeight());
+
+    // Show modal dialog
+    dialogWindow->enterModalState(true, juce::ModalCallbackFunction::create(
+        [this](int result)  // Changed this line
+        {
+            if (result == 1) // "OK" was clicked
+            {
+                juce::String presetName = dialogWindow->getTextEditorContents("presetName");
+                if (presetName.isEmpty())
+                    return;
+
+                // Ensure name ends with .preset
+                if (!presetName.endsWithIgnoreCase(".preset"))
+                    presetName += ".preset";
+
+                // Create file in factory presets directory
+                auto presetFile = currentPresetDirectory.getChildFile(presetName);
+
+                PresetData data;
+                data.harm1Data = harm1.getHarmonicData();
+                data.harm2Data = harm2.getHarmonicData();
+                data.comboData = combo.getHarmonicData();
+                data.morphValue = static_cast<float>(morphSlider.getValue());
+                
+                data.saveToFile(presetFile);
+
+                // Refresh the preset list
+                updatePresetList();
+            }
+            dialogWindow.reset();  // Add this line to clean up
+        }
+    ));
 }
 
 void PluginEditor::loadPreset()
@@ -159,4 +228,42 @@ void PluginEditor::loadPreset()
 juce::Array<float> PluginEditor::getComboHarmonicData() const
 {
     return combo.getHarmonicData();
+}
+
+void PluginEditor::updatePresetList()
+{
+    presetFiles.clear();
+    currentPresetDirectory.findChildFiles(presetFiles, juce::File::findFiles, false, "*.preset");
+    presetFiles.sort();  // Sort alphabetically
+}
+
+void PluginEditor::loadNextPreset()
+{
+    if (presetFiles.isEmpty()) return;
+    
+    currentPresetIndex = (currentPresetIndex + 1) % presetFiles.size();
+    loadPresetAtIndex(currentPresetIndex);
+}
+
+void PluginEditor::loadPrevPreset()
+{
+    if (presetFiles.isEmpty()) return;
+    
+    currentPresetIndex--;
+    if (currentPresetIndex < 0) currentPresetIndex = presetFiles.size() - 1;
+    loadPresetAtIndex(currentPresetIndex);
+}
+
+void PluginEditor::loadPresetAtIndex(int index)
+{
+    if (index >= 0 && index < presetFiles.size())
+    {
+        auto data = PresetData::loadFromFile(presetFiles[index]);
+        
+        // Apply the loaded data
+        harm1.setHarmonicData(data.harm1Data);
+        harm2.setHarmonicData(data.harm2Data);
+        combo.setHarmonicData(data.comboData);
+        morphSlider.setValue(data.morphValue, juce::sendNotification);
+    }
 }

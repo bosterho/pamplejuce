@@ -39,5 +39,18 @@ private:
     std::unique_ptr<juce::FileChooser> fileChooser;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginEditor)
 
+private:
+    // Add these members
+    juce::TextButton nextPresetButton { "Next" };
+    juce::TextButton prevPresetButton { "Prev" };
+    juce::File currentPresetDirectory;
+    juce::Array<juce::File> presetFiles;
+    int currentPresetIndex = -1;
+    
+    void loadNextPreset();
+    void loadPrevPreset();
+    void updatePresetList();
+    void loadPresetAtIndex(int index);
+    std::unique_ptr<juce::AlertWindow> dialogWindow;  // Add this line
 };
 
