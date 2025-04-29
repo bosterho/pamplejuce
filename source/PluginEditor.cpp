@@ -78,8 +78,18 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(loadPresetButton);
     loadPresetButton.onClick = [this]() { loadPreset(); };
 
-    // Setup preset directory
-    currentPresetDirectory = juce::File("C:/ProgramData/Additive Midi/Factory presets");
+#if JUCE_WINDOWS
+    currentPresetDirectory = juce::File::getSpecialLocation(juce::File::commonApplicationDataDirectory)
+                            .getChildFile(JucePlugin_Name)
+                            .getChildFile("Factory Presets");
+#elif JUCE_MAC
+    currentPresetDirectory = juce::File("/Library/Application Support")
+                            .getChildFile(JucePlugin_Name)
+                            .getChildFile("Factory Presets");
+#endif
+
+    // Ensure directory exists
+    currentPresetDirectory.createDirectory();
 }
 
 PluginEditor::~PluginEditor()
