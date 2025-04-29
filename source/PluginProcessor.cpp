@@ -12,6 +12,18 @@ PluginProcessor::PluginProcessor()
                      #endif
                        )
 {
+    // Initialize harmonic data with default values
+    harm1Data.resize(8);
+    harm2Data.resize(8);
+    comboData.resize(8);
+    
+    // Set some default values (for example)
+    for (int i = 0; i < 8; ++i)
+    {
+        harm1Data.set(i, 0.0f);
+        harm2Data.set(i, 0.0f);
+        comboData.set(i, 0.0f);
+    }
 }
 
 PluginProcessor::~PluginProcessor()
@@ -141,31 +153,29 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float>& buffer,
             
             processedMidi.addEvent(message, time);
             
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
+            // Use stored data directly instead of accessing editor
+            auto& harmonicData = comboData;
+            
+            for (int i = 0; i < harmonicData.size(); ++i)
             {
-                auto harmonicData = editor->getComboHarmonicData();
-                
-                for (int i = 0; i < harmonicData.size(); ++i)
+                float harmonicStrength = harmonicData[i];
+                if (harmonicStrength > 0.0f)
                 {
-                    float harmonicStrength = harmonicData[i];
-                    if (harmonicStrength > 0.0f)
+                    // Calculate the frequency ratio for this harmonic
+                    // Harmonic series is 1:2:3:4:5:6:7:8
+                    float ratio = static_cast<float>(i + 2); // +2 because i starts at 0
+                    int harmonicNote = baseNote + ratioToSemitones(ratio);
+                    
+                    int harmonicVelocity = juce::jlimit(1, 127, 
+                        static_cast<int>(baseVelocity * harmonicStrength));
+                    
+                    if (harmonicNote <= 127)
                     {
-                        // Calculate the frequency ratio for this harmonic
-                        // Harmonic series is 1:2:3:4:5:6:7:8
-                        float ratio = static_cast<float>(i + 2); // +2 because i starts at 0
-                        int harmonicNote = baseNote + ratioToSemitones(ratio);
-                        
-                        int harmonicVelocity = juce::jlimit(1, 127, 
-                            static_cast<int>(baseVelocity * harmonicStrength));
-                        
-                        if (harmonicNote <= 127)
-                        {
-                            processedMidi.addEvent(
-                                juce::MidiMessage::noteOn(message.getChannel(), 
+                        processedMidi.addEvent(
+                            juce::MidiMessage::noteOn(message.getChannel(), 
                                                         harmonicNote, 
                                                         static_cast<uint8_t>(harmonicVelocity)),
-                                time);
-                        }
+                            time);
                     }
                 }
             }
@@ -213,19 +223,63 @@ juce::AudioProcessorEditor* PluginProcessor::createEditor()
 }
 
 //==============================================================================
-void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
+void PluginProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
+    // Get automatable parameters state from APVTS
     auto state = apvts.copyState();
+    
+    // Add non-automatable harmonic table data as custom XML
+    auto* harmonicsXml = new juce::XmlElement("HarmonicData");
+    
+    // Save harm1 data
+    auto* harm1Xml = new juce::XmlElement("Harm1");
+    for (int i = 0; i < harm1Data.size(); ++i)
+        harm1Xml->setAttribute("h" + juce::String(i), harm1Data[i]);
+    harmonicsXml->addChildElement(harm1Xml);
+    
+    // Save harm2 data
+    auto* harm2Xml = new juce::XmlElement("Harm2");
+    for (int i = 0; i < harm2Data.size(); ++i)
+        harm2Xml->setAttribute("h" + juce::String(i), harm2Data[i]);
+    harmonicsXml->addChildElement(harm2Xml);
+    
+    // Save combo data
+    auto* comboXml = new juce::XmlElement("Combo");
+    for (int i = 0; i < comboData.size(); ++i)
+        comboXml->setAttribute("h" + juce::String(i), comboData[i]);
+    harmonicsXml->addChildElement(comboXml);
+    
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    xml->addChildElement(harmonicsXml);
     copyXmlToBinary(*xml, destData);
 }
 
-void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
+void PluginProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
-    if (xmlState.get() != nullptr)
+    if (xmlState != nullptr)
+    {
         if (xmlState->hasTagName(apvts.state.getType()))
+        {
             apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
+            
+            // Load harmonic data
+            if (auto* harmonicsXml = xmlState->getChildByName("HarmonicData"))
+            {
+                if (auto* harm1Xml = harmonicsXml->getChildByName("Harm1"))
+                    for (int i = 0; i < 8; ++i)
+                        harm1Data.set(i, static_cast<float>(harm1Xml->getDoubleAttribute("h" + juce::String(i), 0.0)));
+                
+                if (auto* harm2Xml = harmonicsXml->getChildByName("Harm2"))
+                    for (int i = 0; i < 8; ++i)
+                        harm2Data.set(i, static_cast<float>(harm2Xml->getDoubleAttribute("h" + juce::String(i), 0.0)));
+                
+                if (auto* comboXml = harmonicsXml->getChildByName("Combo"))
+                    for (int i = 0; i < 8; ++i)
+                        comboData.set(i, static_cast<float>(comboXml->getDoubleAttribute("h" + juce::String(i), 0.0)));
+            }
+        }
+    }
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParameterLayout()

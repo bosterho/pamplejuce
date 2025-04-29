@@ -6,28 +6,36 @@
 #include "Harm.h"
 #include "Preset.h"
 
-//==============================================================================
-class PluginEditor : public juce::AudioProcessorEditor
+class PluginEditor : public juce::AudioProcessorEditor,
+                    public juce::FileBrowserListener
 {
 public:
     explicit PluginEditor (PluginProcessor&);
-    juce::Array<float> getComboHarmonicData() const;  
     ~PluginEditor() override;
 
-    //==============================================================================
+    // Override methods
     void paint (juce::Graphics&) override;
     void resized() override;
+    
+    // FileBrowserListener overrides
+    void selectionChanged() override {}
+    void fileClicked(const juce::File&, const juce::MouseEvent&) override {}
+    void fileDoubleClicked(const juce::File&) override {}
+    void browserRootChanged(const juce::File&) override {}
+
+    juce::Array<float> getComboHarmonicData() const;
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
+    // Member functions
+    void savePreset();
+    void loadPreset();
+
+    // Member variables
     PluginProcessor& processorRef;
     std::unique_ptr<melatonin::Inspector> inspector;
     juce::TextButton inspectButton { "Inspect the UI" };
     juce::TextButton savePresetButton { "Save Preset" };
-    void savePreset();
     juce::TextButton loadPresetButton { "Load Preset" };
-    void loadPreset();
     std::unique_ptr<juce::Drawable> background;
     Harm harm1 { juce::Colour(0xffc7884d) };
     Harm combo { juce::Colour(0xffE0E0E0) };
@@ -36,21 +44,15 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> morphAttachment;
     juce::ResizableCornerComponent resizer;
     juce::ComponentBoundsConstrainer constrainer;
-    std::unique_ptr<juce::FileChooser> fileChooser;
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginEditor)
 
-private:
-    // Add these members
-    juce::TextButton nextPresetButton { "Next" };
-    juce::TextButton prevPresetButton { "Prev" };
+    // File browser components
+    std::unique_ptr<juce::DialogWindow> fileBrowserDialog;
+    juce::FileBrowserComponent* fileBrowser = nullptr;
     juce::File currentPresetDirectory;
-    juce::Array<juce::File> presetFiles;
-    int currentPresetIndex = -1;
-    
-    void loadNextPreset();
-    void loadPrevPreset();
-    void updatePresetList();
-    void loadPresetAtIndex(int index);
-    std::unique_ptr<juce::AlertWindow> dialogWindow;  // Add this line
+
+    // Alert window for save dialog
+    std::unique_ptr<juce::AlertWindow> dialogWindow;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginEditor)
 };
 

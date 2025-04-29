@@ -32,12 +32,18 @@ public:
         return harmData[index]; 
     }
     
+    // Add callback type definition
+    std::function<void()> onValueChange;
+
     void setValue(int index, float value)
     {
         if (index >= 0 && index < numValues)
         {
             harmData.set(index, juce::jlimit(0.0f, 1.0f, value));
             repaint();
+            // Call the callback when value changes
+            if (onValueChange != nullptr)
+                onValueChange();
         }
     }
 

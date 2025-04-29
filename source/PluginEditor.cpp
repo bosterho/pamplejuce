@@ -8,8 +8,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     background = juce::Drawable::createFromImageData(BinaryData::background_svg, 
                                                    BinaryData::background_svgSize);
 
-    // addAndMakeVisible (inspectButton);
-
     addAndMakeVisible(harm1);
     addAndMakeVisible(harm2);
     addAndMakeVisible(combo);
@@ -23,7 +21,29 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     morphAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
         processorRef.getAPVTS(), "Morph", morphSlider);
     
-    // Update values when slider changes
+    // Initialize harmonics with stored values
+    harm1.setHarmonicData(processorRef.getHarm1Data());
+    harm2.setHarmonicData(processorRef.getHarm2Data());
+    combo.setHarmonicData(processorRef.getComboData());
+    
+    // Add value change listeners for direct manipulation of harmonics
+    harm1.onValueChange = [this]() {
+        processorRef.setHarmonicData(
+            harm1.getHarmonicData(),
+            harm2.getHarmonicData(),
+            combo.getHarmonicData()
+        );
+    };
+    
+    harm2.onValueChange = [this]() {
+        processorRef.setHarmonicData(
+            harm1.getHarmonicData(),
+            harm2.getHarmonicData(),
+            combo.getHarmonicData()
+        );
+    };
+    
+    // Existing morph slider callback
     morphSlider.onValueChange = [this]() {
         float value = static_cast<float>(morphSlider.getValue());
         for (int i = 0; i < Harm::numValues; ++i)
@@ -33,12 +53,18 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             float interpolatedValue = v1 * (1.0f - value) + v2 * value;
             combo.setValue(i, interpolatedValue);
         }
+        // Store updated values in processor
+        processorRef.setHarmonicData(
+            harm1.getHarmonicData(),
+            harm2.getHarmonicData(),
+            combo.getHarmonicData()
+        );
     };
     
-    // Set up resizing constraints with fixed aspect ratio
-    constrainer.setFixedAspectRatio(800.0f / 450.0f);  // Based on initial size
-    constrainer.setMinimumSize(400, 225);  // Maintains aspect ratio
-    constrainer.setMaximumSize(1200, 675); // Maintains aspect ratio
+    // Set up resizing constraints
+    constrainer.setFixedAspectRatio(800.0f / 450.0f);
+    constrainer.setMinimumSize(400, 225);
+    constrainer.setMaximumSize(1200, 675);
     
     setResizable(true, true);
     setConstrainer(&constrainer);
@@ -52,15 +78,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(loadPresetButton);
     loadPresetButton.onClick = [this]() { loadPreset(); };
 
-    // Setup preset browser
+    // Setup preset directory
     currentPresetDirectory = juce::File("C:/ProgramData/Additive Midi/Factory presets");
-    updatePresetList();
-    
-    addAndMakeVisible(nextPresetButton);
-    addAndMakeVisible(prevPresetButton);
-    
-    nextPresetButton.onClick = [this]() { loadNextPreset(); };
-    prevPresetButton.onClick = [this]() { loadPrevPreset(); };
 }
 
 PluginEditor::~PluginEditor()
@@ -100,8 +119,8 @@ void PluginEditor::resized()
     auto buttonsY = buttonArea.getY() + 10;
     
     // Position the preset browser buttons
-    prevPresetButton.setBounds(10, buttonsY, buttonWidth, 30);
-    nextPresetButton.setBounds(buttonWidth + buttonSpacing + 10, buttonsY, buttonWidth, 30);
+    // prevPresetButton.setBounds(10, buttonsY, buttonWidth, 30);
+    // nextPresetButton.setBounds(buttonWidth + buttonSpacing + 10, buttonsY, buttonWidth, 30);
     
     // Adjust existing save/load buttons position
     auto centerButtonsX = (getWidth() - (2 * 100 + buttonSpacing)) / 2;
@@ -191,7 +210,7 @@ void PluginEditor::savePreset()
                 data.saveToFile(presetFile);
 
                 // Refresh the preset list
-                updatePresetList();
+                // updatePresetList();
             }
             dialogWindow.reset();  // Add this line to clean up
         }
@@ -200,70 +219,62 @@ void PluginEditor::savePreset()
 
 void PluginEditor::loadPreset()
 {
-    fileChooser = std::make_unique<juce::FileChooser>(
+    // Create file browser component
+    auto tempBrowser = std::make_unique<juce::FileBrowserComponent>(
+        juce::FileBrowserComponent::openMode | 
+        juce::FileBrowserComponent::canSelectFiles,
+        currentPresetDirectory,  // Start in presets directory
+        new juce::WildcardFileFilter("*.preset", "*", "Preset Files"),
+        nullptr);
+
+    // Style and add listener before transferring ownership
+    tempBrowser->setLookAndFeel(&getLookAndFeel());
+    tempBrowser->addListener(this);
+
+    // Create dialog window
+    fileBrowserDialog = std::make_unique<juce::DialogWindow>(
         "Load Preset",
-        juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
-        "*.preset");
+        juce::Colour(0xFF191919),
+        true,
+        true);
 
-    auto chooserFlags = juce::FileBrowserComponent::openMode 
-                     | juce::FileBrowserComponent::canSelectFiles;
+    // Store pointer before transferring ownership
+    fileBrowser = tempBrowser.get();
+    
+    // Transfer ownership
+    fileBrowserDialog->setContentOwned(tempBrowser.release(), true);
+    fileBrowserDialog->centreAroundComponent(this, 400, 300);
 
-    fileChooser->launchAsync(chooserFlags, [this](const juce::FileChooser& fc)
-    {
-        if (fc.getURLResult().isLocalFile())
-        {
-            auto file = fc.getResult();
-            auto data = PresetData::loadFromFile(file);
-            
-            // Apply the loaded data
-            harm1.setHarmonicData(data.harm1Data);
-            harm2.setHarmonicData(data.harm2Data);
-            combo.setHarmonicData(data.comboData);
-            morphSlider.setValue(data.morphValue, juce::sendNotification);
-        }
-        fileChooser.reset();
-    });
+    fileBrowserDialog->enterModalState(true,
+        juce::ModalCallbackFunction::create([this](int result) {
+            if (result == 1)  // OK was pressed
+            {
+                if (fileBrowser != nullptr)
+                {
+                    juce::File selectedFile = fileBrowser->getSelectedFile(true);
+                    if (selectedFile.existsAsFile())
+                    {
+                        auto data = PresetData::loadFromFile(selectedFile);
+                        harm1.setHarmonicData(data.harm1Data);
+                        harm2.setHarmonicData(data.harm2Data);
+                        combo.setHarmonicData(data.comboData);
+                        morphSlider.setValue(data.morphValue, juce::sendNotification);
+                        
+                        // Store in processor
+                        processorRef.setHarmonicData(
+                            data.harm1Data,
+                            data.harm2Data,
+                            data.comboData
+                        );
+                    }
+                }
+            }
+            fileBrowser = nullptr;  // Clear the raw pointer
+            fileBrowserDialog = nullptr;
+        }));
 }
 
 juce::Array<float> PluginEditor::getComboHarmonicData() const
 {
     return combo.getHarmonicData();
-}
-
-void PluginEditor::updatePresetList()
-{
-    presetFiles.clear();
-    currentPresetDirectory.findChildFiles(presetFiles, juce::File::findFiles, false, "*.preset");
-    presetFiles.sort();  // Sort alphabetically
-}
-
-void PluginEditor::loadNextPreset()
-{
-    if (presetFiles.isEmpty()) return;
-    
-    currentPresetIndex = (currentPresetIndex + 1) % presetFiles.size();
-    loadPresetAtIndex(currentPresetIndex);
-}
-
-void PluginEditor::loadPrevPreset()
-{
-    if (presetFiles.isEmpty()) return;
-    
-    currentPresetIndex--;
-    if (currentPresetIndex < 0) currentPresetIndex = presetFiles.size() - 1;
-    loadPresetAtIndex(currentPresetIndex);
-}
-
-void PluginEditor::loadPresetAtIndex(int index)
-{
-    if (index >= 0 && index < presetFiles.size())
-    {
-        auto data = PresetData::loadFromFile(presetFiles[index]);
-        
-        // Apply the loaded data
-        harm1.setHarmonicData(data.harm1Data);
-        harm2.setHarmonicData(data.harm2Data);
-        combo.setHarmonicData(data.comboData);
-        morphSlider.setValue(data.morphValue, juce::sendNotification);
-    }
 }
