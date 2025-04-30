@@ -43,30 +43,30 @@ jobs:
           #   self-hosted-runner: false
 
             # Using github runner
-          # - name: macOS
-          #   os: macos-14
-          #   pluginval-binary: pluginval.app/Contents/MacOS/pluginval
-          #   extra-flags: -G Ninja -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
-          #   self-hosted-runner: true
-
-            # Self-hosted 
           - name: macOS
-            os: [self-hosted, macos]
+            os: macos-14
             pluginval-binary: pluginval.app/Contents/MacOS/pluginval
             extra-flags: -G Ninja -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
             self-hosted-runner: true
+
+            # Self-hosted 
+          # - name: macOS
+          #   os: [self-hosted, macos]
+          #   pluginval-binary: pluginval.app/Contents/MacOS/pluginval
+          #   extra-flags: -G Ninja -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+          #   self-hosted-runner: true
             
             # Using github runner
-          # - name: Windows
-          #   os: windows-latest
-          #   pluginval-binary: ./pluginval.exe
-          #   self-hosted-runner: false
+          - name: Windows
+            os: windows-latest
+            pluginval-binary: ./pluginval.exe
+            self-hosted-runner: false
 
             # Self-hosted
-          - name: Windows
-            os: [self-hosted, windows]
-            pluginval-binary: ./pluginval.exe
-            self-hosted-runner: true
+          # - name: Windows
+          #   os: [self-hosted, windows]
+          #   pluginval-binary: ./pluginval.exe
+          #   self-hosted-runner: true
 
     steps:
       # Setup MSVC toolchain and developer command prompt (Windows) 
