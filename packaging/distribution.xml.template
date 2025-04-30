@@ -36,6 +36,6 @@
     </choice>
 
     <choice id="presets" visible="true" start_selected="true" title="${PRODUCT_NAME} Factory Presets">
-        <pkg-ref id="${BUNDLE_ID}.factorypresets.pkg" version="${VERSION}" onConclusion="none">factorypresets.pkg</pkg-ref>
+        <pkg-ref id="${BUNDLE_ID}.factorypresets.pkg" version="${VERSION}" onConclusion="none">${PRODUCT_NAME}.factorypresets.pkg</pkg-ref>
     </choice>
 </installer-gui-script>
