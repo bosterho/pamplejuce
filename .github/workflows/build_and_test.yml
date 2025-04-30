@@ -110,10 +110,10 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+      # - name: Checkout code
+      #   uses: actions/checkout@v4
+      #   with:
+      #     submodules: recursive
 
       - name: Cache the build
         uses: mozilla-actions/sccache-action@v0.0.9
