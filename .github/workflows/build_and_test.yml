@@ -40,12 +40,14 @@ jobs:
           #   os: ubuntu-22.04
           #   pluginval-binary: ./pluginval
           #   extra-flags: -G Ninja
+
           # - name: macOS
           # os: macos-14
           - name: Mac
             os: [self-hosted, macos]
             pluginval-binary: pluginval.app/Contents/MacOS/pluginval
             extra-flags: -G Ninja -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+            
           # - name: Windows
           # os: windows-latest
           - name: BEN-PC-21
@@ -79,10 +81,11 @@ jobs:
 
       - name: Install IPP (Windows)
         if: (runner.os == 'Windows') && (steps.cache-ipp.outputs.cache-hit != 'true')
+        shell: cmd
         run: |
           curl --output oneapi.exe https://registrationcenter-download.intel.com/akdlm/IRC_NAS/2e89fab4-e1c7-4f14-a1ef-6cddba8c5fa7/intel-ipp-2022.0.0.796_offline.exe
-          ./oneapi.exe -s -x -f oneapi
-          ./oneapi/bootstrapper.exe -s -c --action install --components=intel.oneapi.win.ipp.devel --eula=accept -p=NEED_VS2022_INTEGRATION=1 --log-dir=.
+          start /wait oneapi.exe -s -x -f oneapi
+          start /wait oneapi\bootstrapper.exe -s -c --action install --components=intel.oneapi.win.ipp.devel --eula=accept -p=NEED_VS2022_INTEGRATION=1 --log-dir=.
 
       - name: Save IPP cache (even on CI fail)
         if: runner.os == 'Windows' && (steps.cache-ipp.outputs.cache-hit != 'true')
