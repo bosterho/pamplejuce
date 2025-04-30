@@ -79,7 +79,7 @@ jobs:
           key: ipp-v6
           path: C:\Program Files (x86)\Intel
 
-      - name: Install IPP (Windows)
+      - name: Install IPP (Windows) 
         if: (runner.os == 'Windows') && (steps.cache-ipp.outputs.cache-hit != 'true')
         shell: cmd
         run: |
