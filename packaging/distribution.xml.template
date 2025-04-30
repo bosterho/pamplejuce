@@ -16,6 +16,7 @@
         <line choice="vst3" />
         <line choice="au" />
         <line choice="clap" />
+        <line choice="presets" />
     </choices-outline>
 
     <choice id="app" visible="true" start_selected="true" title="${PRODUCT_NAME} Standalone">
@@ -34,7 +35,7 @@
         <pkg-ref id="${BUNDLE_ID}.clap.pkg" version="${VERSION}" onConclusion="none">${PRODUCT_NAME}.clap.pkg</pkg-ref>
     </choice>
 
-    <pkg-ref id="com.${COMPANY_NAME,tolower()}.${PRODUCT_NAME,tolower()}.factorypresets"
-         version="${VERSION}"
-         auth="root">factorypresets.pkg</pkg-ref>
+    <choice id="presets" visible="true" start_selected="true" title="${PRODUCT_NAME} Factory Presets">
+        <pkg-ref id="${BUNDLE_ID}.factorypresets.pkg" version="${VERSION}" onConclusion="none">factorypresets.pkg</pkg-ref>
+    </choice>
 </installer-gui-script>
