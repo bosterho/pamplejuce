@@ -42,7 +42,7 @@ jobs:
           #   extra-flags: -G Ninja
           # - name: macOS
           # os: macos-14
-          - name: mac
+          - name: Mac
             os: self-hosted-macos
             pluginval-binary: pluginval.app/Contents/MacOS/pluginval
             extra-flags: -G Ninja -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
