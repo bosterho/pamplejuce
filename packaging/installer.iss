@@ -33,7 +33,7 @@ UninstallFilesDir="{commonappdata}\{#ProductName}\uninstall"
 [UninstallDelete]
 Type: filesandordirs; Name: "{commoncf64}\VST3\{#ProductName}Data"
 
-; MSVC adds a .ilk when building the plugin. Let's not include that.
+; MSVC adds a .ilk when building the plugin. Let's not include that. 
 [Files]
 Source: "..\Builds\{#ProjectName}_artefacts\Release\VST3\{#ProductName}.vst3\*"; DestDir: "{commoncf64}\VST3\{#ProductName}.vst3\"; Excludes: *.ilk; Flags: ignoreversion recursesubdirs; Components: vst3
 Source: "..\Builds\{#ProjectName}_artefacts\Release\CLAP\{#ProductName}.clap"; DestDir: "{commoncf64}\CLAP\"; Flags: ignoreversion; Components: clap
