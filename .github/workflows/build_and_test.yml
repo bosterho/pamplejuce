@@ -189,7 +189,7 @@ jobs:
           pkgbuild --identifier "${{ env.BUNDLE_ID }}.clap.pkg" --version $VERSION --component "${{ env.CLAP_PATH }}" --install-location "/Library/Audio/Plug-Ins/CLAP" "packaging/${{ env.PRODUCT_NAME }}.clap.pkg"
           pkgbuild --identifier "${{ env.BUNDLE_ID }}.factorypresets.pkg" \
             --version $VERSION \
-            --root "packaging/Factory Presets" \
+            --root "packaging/resources/Factory Presets" \
             --install-location "/Library/Audio/Presets/${{ env.COMPANY_NAME }}/${{ env.PRODUCT_NAME }}" \
             "packaging/${{ env.PRODUCT_NAME }}.factorypresets.pkg"
 
