@@ -40,18 +40,34 @@ jobs:
           #   os: ubuntu-22.04
           #   pluginval-binary: ./pluginval
           #   extra-flags: -G Ninja
+          #   self-hosted-runner: false
 
-          # - name: macOS
-          # os: macos-14
-          - name: Mac
-            os: [self-hosted, macos]
+            # Using github runner
+          - name: macOS
+            os: macos-14
             pluginval-binary: pluginval.app/Contents/MacOS/pluginval
             extra-flags: -G Ninja -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+            self-hosted-runner: true
+
+            # Self-hosted
+            # os: macos-14
+          # - name: macOS
+          #   os: [self-hosted, macos]
+          #   pluginval-binary: pluginval.app/Contents/MacOS/pluginval
+          #   extra-flags: -G Ninja -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+          #   self-hosted-runner: true
             
+            # Using github runner
           - name: Windows
             os: windows-latest
-            # os: [self-hosted, windows]
             pluginval-binary: ./pluginval.exe
+            self-hosted-runner: false
+
+            # Self-hosted
+          # - name: Windows
+          #   os: [self-hosted, windows]
+          #   pluginval-binary: ./pluginval.exe
+          #   self-hosted-runner: true
 
     steps:
       # Setup MSVC toolchain and developer command prompt (Windows)
@@ -70,27 +86,27 @@ jobs:
           sudo apt-get update && sudo apt install libasound2-dev libx11-dev libxinerama-dev libxext-dev libfreetype6-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev xvfb ninja-build
           sudo /usr/bin/Xvfb $DISPLAY &
 
-      # - name: Cache IPP (Windows)
-      #   if: runner.os == 'Windows'
-      #   id: cache-ipp
-      #   uses: actions/cache@v4
-      #   with:
-      #     key: ipp-v6
-      #     path: C:\Program Files (x86)\Intel
+      - name: Cache IPP (Windows)
+        if: runner.os == 'Windows' && !matrix.self-hosted-runner
+        id: cache-ipp
+        uses: actions/cache@v4
+        with:
+          key: ipp-v6
+          path: C:\Program Files (x86)\Intel
 
-      # - name: Install IPP (Windows)
-      #   if: (runner.os == 'Windows') && (steps.cache-ipp.outputs.cache-hit != 'true')
-      #   run: |
-      #     curl --output oneapi.exe https://registrationcenter-download.intel.com/akdlm/IRC_NAS/2e89fab4-e1c7-4f14-a1ef-6cddba8c5fa7/intel-ipp-2022.0.0.796_offline.exe
-      #     ./oneapi.exe -s -x -f oneapi
-      #     ./oneapi/bootstrapper.exe -s -c --action install --components=intel.oneapi.win.ipp.devel --eula=accept -p=NEED_VS2022_INTEGRATION=1 --log-dir=.
+      - name: Install IPP (Windows)
+        if: (runner.os == 'Windows') && (steps.cache-ipp.outputs.cache-hit != 'true') && !matrix.self-hosted-runner
+        run: |
+          curl --output oneapi.exe https://registrationcenter-download.intel.com/akdlm/IRC_NAS/2e89fab4-e1c7-4f14-a1ef-6cddba8c5fa7/intel-ipp-2022.0.0.796_offline.exe
+          ./oneapi.exe -s -x -f oneapi
+          ./oneapi/bootstrapper.exe -s -c --action install --components=intel.oneapi.win.ipp.devel --eula=accept -p=NEED_VS2022_INTEGRATION=1 --log-dir=.
 
-      # - name: Save IPP cache (even on CI fail)
-      #   if: runner.os == 'Windows' && (steps.cache-ipp.outputs.cache-hit != 'true')
-      #   uses: actions/cache/save@v4
-      #   with:
-      #     path: C:\Program Files (x86)\Intel
-      #     key: ipp-v6
+      - name: Save IPP cache (even on CI fail)
+        if: runner.os == 'Windows' && (steps.cache-ipp.outputs.cache-hit != 'true') && !matrix.self-hosted-runner
+        uses: actions/cache/save@v4
+        with:
+          path: C:\Program Files (x86)\Intel
+          key: ipp-v6
 
       - name: Install Ninja (Windows)
         if: runner.os == 'Windows'
@@ -151,7 +167,9 @@ jobs:
           echo "STANDALONE_PATH=$ARTIFACTS_PATH/Standalone/${{ env.PRODUCT_NAME }}.app" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=${{ env.PRODUCT_NAME }}-${{ env.VERSION }}-${{ matrix.name }}" >> $GITHUB_ENV
 
+      # Skip Pluginval for self-hosted runners
       - name: Pluginval
+        if: ${{ !matrix.self-hosted-runner }}
         run: |
           curl -LO "https://github.com/Tracktion/pluginval/releases/download/v1.0.3/pluginval_${{ matrix.name }}.zip"
           7z x pluginval_${{ matrix.name }}.zip
