@@ -78,10 +78,17 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(loadPresetButton);
     loadPresetButton.onClick = [this]() { loadPreset(); };
 
+#if JUCE_WINDOWS
     currentPresetDirectory = juce::File::getSpecialLocation(juce::File::commonApplicationDataDirectory)
                             .getChildFile(JucePlugin_Manufacturer)
                             .getChildFile(JucePlugin_Name)
                             .getChildFile("Factory Presets");
+#elif JUCE_MAC
+    currentPresetDirectory = juce::File("/Library/Audio/Presets/")
+                            .getChildFile(JucePlugin_Manufacturer)
+                            .getChildFile(JucePlugin_Name)
+                            .getChildFile("Factory Presets");
+#endif
 
     // Ensure directory exists
     currentPresetDirectory.createDirectory();
