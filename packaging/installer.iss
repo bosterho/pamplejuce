@@ -40,8 +40,8 @@ Source: "..\Builds\{#ProjectName}_artefacts\Release\CLAP\{#ProductName}.clap"; D
 Source: "..\Builds\{#ProjectName}_artefacts\Release\Standalone\{#ProductName}.exe"; DestDir: "{commonpf64}\{#Publisher}\{#ProductName}"; Flags: ignoreversion; Components: standalone
 
 ; Factory Presets
-Source: "resources\Factory Presets\*"; DestDir: "{commonappdata}\{#Publisher}\{#ProductName}\Factory Presets"; \
-    Flags: ignoreversion recursesubdirs; Components: vst3
+Source: "resources\Factory Presets\*"; DestDir: "{commonappdata}\{#Publisher}\{#ProductName}\"; \
+    Flags: ignoreversion recursesubdirs; Components: standalone vst3 clap
 
 [Icons]
 Name: "{autoprograms}\{#ProductName}"; Filename: "{commonpf64}\{#Publisher}\{#ProductName}\{#ProductName}.exe"; Components: standalone
