@@ -13,7 +13,7 @@
         
     <!-- Define where files will be installed on user's system -->
         <key>TargetPath</key>
-        <string>/Library/Application Support/{PRODUCT_NAME}/Factory Presets</string>
+        <string>/Library/Application Support/{PRODUCT_NAME}/</string>
 
     </dict>
 </array>

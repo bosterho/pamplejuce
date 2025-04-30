@@ -81,13 +81,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 #if JUCE_WINDOWS
     currentPresetDirectory = juce::File::getSpecialLocation(juce::File::commonApplicationDataDirectory)
                             .getChildFile(JucePlugin_Manufacturer)
-                            .getChildFile(JucePlugin_Name)
-                            .getChildFile("Factory Presets");
+                            .getChildFile(JucePlugin_Name);
 #elif JUCE_MAC
     currentPresetDirectory = juce::File("/Library/Audio/Presets/")
                             .getChildFile(JucePlugin_Manufacturer)
-                            .getChildFile(JucePlugin_Name)
-                            .getChildFile("Factory Presets");
+                            .getChildFile(JucePlugin_Name);
 #endif
 
     // Ensure directory exists
@@ -231,8 +229,6 @@ void PluginEditor::savePreset()
 
 void PluginEditor::loadPreset()
 {
-    // Commenting out FileBrowserComponent functionality to troubleshoot segmentation faults
-    /*
     // Create file browser component
     auto tempBrowser = std::make_unique<juce::FileBrowserComponent>(
         juce::FileBrowserComponent::openMode | 
@@ -286,13 +282,6 @@ void PluginEditor::loadPreset()
             fileBrowser = nullptr;  // Clear the raw pointer
             fileBrowserDialog = nullptr;
         }));
-    */
-    
-    // Temporary simple message to show functionality is disabled
-    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
-        "Load Preset",
-        "Preset loading functionality has been temporarily disabled for troubleshooting.",
-        "OK");
 }
 
 juce::Array<float> PluginEditor::getComboHarmonicData() const
