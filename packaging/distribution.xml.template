@@ -33,8 +33,8 @@
     <choice id="clap" visible="true" start_selected="true" title="${PRODUCT_NAME} CLAP">
         <pkg-ref id="${BUNDLE_ID}.clap.pkg" version="${VERSION}" onConclusion="none">${PRODUCT_NAME}.clap.pkg</pkg-ref>
     </choice>
-    
-    <pkg-ref id="com.{Company_Name_Lowercase}.{Product_Name_Lowercase}.factorypresets"
-         version="{Version}"
+
+    <pkg-ref id="com.${COMPANY_NAME,tolower()}.${PRODUCT_NAME,tolower()}.factorypresets"
+         version="${VERSION}"
          auth="root">factorypresets.pkg</pkg-ref>
 </installer-gui-script>

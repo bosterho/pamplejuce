@@ -5,7 +5,7 @@
     <dict>
     <!-- Where in the pkg to find the files to install -->
         <key>Path</key>
-        <string>resources/Factory presets</string>
+        <string>resources/Factory Presets</string>
 
     <!-- Path type we are finding files at is type "Source" -->
         <key>Path Type</key>
@@ -13,7 +13,7 @@
         
     <!-- Define where files will be installed on user's system -->
         <key>TargetPath</key>
-        <string>/Library/Application Support/{Product_Name}/Factory presets</string>
+        <string>/Library/Application Support/{PRODUCT_NAME}/Factory Presets</string>
 
     </dict>
 </array>
