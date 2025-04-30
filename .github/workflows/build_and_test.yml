@@ -69,7 +69,7 @@ jobs:
             self-hosted-runner: true
 
     steps:
-      # Setup MSVC toolchain and developer command prompt (Windows)
+      # Setup MSVC toolchain and developer command prompt (Windows) 
       - uses: ilammy/msvc-dev-cmd@v1
 
       # Use clang on Linux so we don't introduce a 3rd compiler (Windows and macOS use MSVC and Clang)
