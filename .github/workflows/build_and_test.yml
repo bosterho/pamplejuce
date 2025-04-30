@@ -48,9 +48,8 @@ jobs:
             pluginval-binary: pluginval.app/Contents/MacOS/pluginval
             extra-flags: -G Ninja -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
             
-          # - name: Windows
+          - name: Windows
           # os: windows-latest
-          - name: BEN-PC-21
             os: [self-hosted, windows]
             pluginval-binary: ./pluginval.exe
 
