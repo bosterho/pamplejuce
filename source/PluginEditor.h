@@ -6,8 +6,8 @@
 #include "Harm.h"
 #include "Preset.h"
 
-class PluginEditor : public juce::AudioProcessorEditor,
-                    public juce::FileBrowserListener
+class PluginEditor : public juce::AudioProcessorEditor
+                    // public juce::FileBrowserListener - commenting out
 {
 public:
     explicit PluginEditor (PluginProcessor&);
@@ -17,18 +17,20 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
     
-    // FileBrowserListener overrides
+    // FileBrowserListener overrides - commenting out
+    /*
     void selectionChanged() override {}
     void fileClicked(const juce::File&, const juce::MouseEvent&) override {}
     void fileDoubleClicked(const juce::File&) override {}
     void browserRootChanged(const juce::File&) override {}
+    */
 
     juce::Array<float> getComboHarmonicData() const;
 
 private:
     // Member functions
     void savePreset();
-    void loadPreset();
+    void loadPreset(); // Keep the declaration but will comment out implementation
 
     // Member variables
     PluginProcessor& processorRef;
@@ -45,9 +47,11 @@ private:
     juce::ResizableCornerComponent resizer;
     juce::ComponentBoundsConstrainer constrainer;
 
-    // File browser components
+    // File browser components - commenting out
+    /*
     std::unique_ptr<juce::DialogWindow> fileBrowserDialog;
     juce::FileBrowserComponent* fileBrowser = nullptr;
+    */
     juce::File currentPresetDirectory;
 
     // Alert window for save dialog

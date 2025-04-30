@@ -231,6 +231,8 @@ void PluginEditor::savePreset()
 
 void PluginEditor::loadPreset()
 {
+    // Commenting out FileBrowserComponent functionality to troubleshoot segmentation faults
+    /*
     // Create file browser component
     auto tempBrowser = std::make_unique<juce::FileBrowserComponent>(
         juce::FileBrowserComponent::openMode | 
@@ -284,6 +286,13 @@ void PluginEditor::loadPreset()
             fileBrowser = nullptr;  // Clear the raw pointer
             fileBrowserDialog = nullptr;
         }));
+    */
+    
+    // Temporary simple message to show functionality is disabled
+    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon,
+        "Load Preset",
+        "Preset loading functionality has been temporarily disabled for troubleshooting.",
+        "OK");
 }
 
 juce::Array<float> PluginEditor::getComboHarmonicData() const
