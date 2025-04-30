@@ -49,7 +49,7 @@ jobs:
           #   extra-flags: -G Ninja -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
           #   self-hosted-runner: true
 
-            # Self-hosted
+            # Self-hosted 
           - name: macOS
             os: [self-hosted, macos]
             pluginval-binary: pluginval.app/Contents/MacOS/pluginval
